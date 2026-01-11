@@ -43,7 +43,7 @@ io.on('connection', (socket) =>{
         revealed: false,
       }
       rooms.set(roomId, room)
-      console.log('Created new room: ${roomId}')
+      console.log(`Created new room: ${roomId}`)
     }
 
     // create a player object
@@ -64,7 +64,49 @@ io.on('connection', (socket) =>{
       revealed: room.revealed,
     })
 
-    console.log('$(playerName) joined room $(roomId)')
+    console.log(`${playerName} joined room ${roomId}`)
+  })
+
+  // event listener for votes from client, extract room Id and vote from client
+  socket.on('submit-vote', (data) => {
+
+    const { roomId, vote } = data
+    const room = rooms.get(roomId)
+
+    // safety check
+    if (!room) return
+
+    // find the player in the room (extract their socket id)
+    const player = room.players.get(socket.id)
+    if (!player) return
+
+    // update player's vote (remember the optional field in the Player object)
+    player.vote = vote
+
+    // broadcast update to everyone in the room
+    io.to(roomId).emit('room-update', {
+      players: Array.from(room.players.values()),
+      revealed: room.revealed,
+    })
+    console.log(`${player.name} voted ${vote}`)
+  })
+
+  socket.on('reveal-vote', (data) => {
+
+    const {roomId} = data
+    const room = rooms.get(roomId)
+    if (!room) return
+
+    // set revealed field to true
+    room.revealed = true
+
+    // broadcast reveal to entire room
+    io.to(roomId).emit('room-update', {
+      players: Array.from(room.players.values()),
+      revealed: room.revealed,
+    })
+
+    console.log(`Votes revealed in room ${roomId}`)
   })
 
 
@@ -83,12 +125,12 @@ io.on('connection', (socket) =>{
         revealed: room.revealed,
       })
 
-      console.log('Player ${socket.id} removed from room ${roomId}')
+      console.log(`Player ${socket.id} removed from room ${roomId}`)
 
       // if there are no players left, delete the room
       if (room.players.size == 0) {
         rooms.delete(roomId)
-        console.log('Room ${roomId} deleted (empty)')
+        console.log(`Room ${roomId} deleted (empty)`)
       }
     })
   })
@@ -96,5 +138,5 @@ io.on('connection', (socket) =>{
 
 
 httpServer.listen(PORT, () => {
-  console.log('Server running on port ${PORT}')
+  console.log(`Server running on port ${PORT}`)
 })

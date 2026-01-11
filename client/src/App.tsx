@@ -53,6 +53,23 @@ function App() {
     setHasJoined(true)
   }
 
+  const handleVote = (vote: string) => {
+    if (!socket) return
+
+    socket.emit('submit-vote', {
+      roomId,
+      vote,
+    })
+  }
+
+  const handleReveal = () => {
+    if (!socket) return
+
+    socket.emit('reveal-vote', {
+      roomId,
+    })
+  }
+
   // switched view after player joins (form to enter a room)
   if (!hasJoined) {
     return (
@@ -85,7 +102,40 @@ function App() {
         <h1>Planning Poker</h1>
         <p>Socket status: {socket ? 'Connected ✓' : 'Connecting...'}</p>
         <p>Players in room: {players.length}</p>
+        {/* Player List */}
+      <div>
+    <h2>Players:</h2>
+    {players.map((player) => (
+      <div key={player.id}>
+        {player.name}: {
+          revealed
+            ? (player.vote || 'No vote')
+            : (player.vote ? '✓ Voted' : '⏳ Waiting')
+        }
       </div>
+    ))}
+  </div>
+
+    {/* Reveal Button */}
+    <div>
+      <button onClick={handleReveal} disabled={revealed}>
+        {revealed ? 'Votes Revealed' : 'Reveal Votes'}
+      </button>
+    </div>
+
+      {/* Voting Cards */}
+      <div>
+        <h2>Your Vote:</h2>
+        {['1', '2', '3', '5', '8', '13', '21'].map((value) => (
+          <button
+            key={value}
+            onClick={() => handleVote(value)}
+          >
+            {value}
+          </button>
+        ))}
+      </div>
+    </div>
     )
 }
 
