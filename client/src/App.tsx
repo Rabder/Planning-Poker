@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSocket } from './hooks/useSocket'
-import { Player, GameStage, Story, Room } from './types'
+import { Player, GameStage, Story } from './types'
 
 
 function App() {
@@ -12,8 +12,6 @@ function App() {
 
   // state to store list of players in the room
   const [players, setPlayers] = useState<Player[]>([])
-  // state to track if votes are hidden or revealed
-  const [revealed, setRevealed] = useState(false)
 
   // form state
   const [playerName, setPlayerName] = useState('')
@@ -83,7 +81,6 @@ function App() {
     console.log('Room update received: ', data)
     console.log('GameStage:', data.gameStage)  // ADD THIS LINE
     setPlayers(data.players)
-    setRevealed(data.revealed)
     setGameStage(data.gameStage)
     setModeratorId(data.moderatorId)
     setCurrentStory(data.currentStory)
