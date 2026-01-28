@@ -148,6 +148,37 @@ function App() {
 
   
 
+
+ const handleLeaveRoom = () => {        
+    if (!socket) return
+
+    // 1. Disconnect from socket
+    socket.disconnect()
+
+    // 2. Clear localStorage
+    localStorage.removeItem('playerName')
+    localStorage.removeItem('roomId')
+
+    // 3. Reset all state to initial values
+    setHasJoined(false)
+    setPlayers([])
+    setGameStage(GameStage.WAITING)
+    setModeratorId(null)
+    setCurrentStory(null)
+    setReadyPlayers([])
+    setCountdown(null)
+    setPlayerId(null)
+    setStoryName('')
+    setStoryDesc('')
+    setSelectCard(null)
+    setHasVoted(false)
+    setReadyToGo(false)
+
+    // Optional: Reset form fields too
+    setPlayerName('')
+    setRoomId('')
+  }
+  
   const handleSelectCard = (vote: number | string | null) => {
     if (!socket) return
     if (vote === null) return
@@ -173,6 +204,8 @@ function App() {
   // switched view after player joins (form to enter a room)
   if (!hasJoined) {
     return (
+
+
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
           <div className="text-center mb-8">
@@ -223,6 +256,16 @@ function App() {
   }
 
 
+return (
+    <div className="relative">
+      <button
+        onClick={handleLeaveRoom}
+        className="absolute top-4 right-4 z-50 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 shadow-lg"
+      >
+        Leave Room
+      </button>
+
+  {(() => {
   switch (gameStage) {
     case GameStage.WAITING:
       return (
@@ -517,11 +560,12 @@ function App() {
         </div>
       )
 
-      
+    default:
+      return <div>Loading...</div>
   }
-
-
-    
+})()}
+    </div>
+  )
 }
 
 export default App
