@@ -5,7 +5,7 @@ import express from 'express' // web framework - HTTP request handling
 import { createServer } from 'http' // Node's built in HTTP server
 import { Server } from 'socket.io' // for real time communication
 import cors from 'cors' // enables front (3000) and backend (3001) comms
-import { Room, GameStage } from './types'
+import { Room, GameStage } from './types/index.js'
 
 
 // create express application and set the port to 3001
