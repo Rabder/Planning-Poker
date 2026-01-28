@@ -10,9 +10,10 @@
     "lint": "eslint . --ext ts --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^4.18.2",
-    "socket.io": "^4.6.1",
-    "cors": "^2.8.5"
+    "socket.io": "^4.6.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

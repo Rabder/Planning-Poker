@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(nvm list:*)",
+      "Bash(where:*)",
+      "Bash(nvm current:*)",
+      "Bash(yarn:*)",
+      "Bash(corepack enable:*)",
+      "Bash(npx tailwindcss init -p)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)"
+    ]
+  }
+}
