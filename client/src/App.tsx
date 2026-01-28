@@ -5,7 +5,10 @@ import { Player, GameStage, Story, Room } from './types'
 
 function App() {
 
-  const socket = useSocket(import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001')
+  // In production (single service), connect to same origin. In dev, use localhost:3001
+  const backendUrl = import.meta.env.VITE_BACKEND_URL ||
+                     (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin)
+  const socket = useSocket(backendUrl)
 
   // state to store list of players in the room
   const [players, setPlayers] = useState<Player[]>([])

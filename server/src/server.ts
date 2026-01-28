@@ -5,7 +5,13 @@ import express from 'express' // web framework - HTTP request handling
 import { createServer } from 'http' // Node's built in HTTP server
 import { Server } from 'socket.io' // for real time communication
 import cors from 'cors' // enables front (3000) and backend (3001) comms
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { Room, GameStage } from './types/index.js'
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 
 // create express application and set the port to 3001
@@ -16,6 +22,15 @@ const PORT = process.env.PORT || 3001
 
 // enable client and server connection
 app.use(cors());
+
+// Serve static files from React app in production
+const clientBuildPath = path.join(__dirname, '../../client/dist')
+app.use(express.static(clientBuildPath))
+
+// SPA fallback - send index.html for all non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientBuildPath, 'index.html'))
+})
 
 const httpServer = createServer(app)  // wraps Express app in HTTP server
 const io = new Server(httpServer, {
