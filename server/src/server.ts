@@ -3,7 +3,7 @@
 import 'dotenv/config' // load environment variables first
 import express from 'express' // web framework - HTTP request handling
 import { createServer } from 'http' // Node's built in HTTP server
-import { Server } from 'socket.io' // for real time communication
+import { Server, Socket } from 'socket.io' // for real time communication
 import cors from 'cors' // enables front (3000) and backend (3001) comms
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -44,6 +44,21 @@ const io = new Server(httpServer, {
 // in memory storage for all rooms: 
 // key: roomID  --->   value: Room object with all of its data
 const rooms = new Map<string, Room>()
+let timeouts = new Map<string, NodeJS.Timeout>()
+
+
+function handleInactivity(socket: Socket) {
+  if (!socket) return
+  console.log(`Disconnecting ${socket.id} due to inactivity`);
+  socket.disconnect()
+}
+
+function resetInactivity(socket: Socket) {
+  if (!socket) return
+  clearTimeout(timeouts.get(socket.id))
+  timeouts.set(socket.id, setTimeout(() => handleInactivity(socket), 60000))
+}
+
 
 // send/broadcast room state to all players in the room
 function broadcastRoomUpdate(room: Room, io: Server) {
@@ -144,9 +159,14 @@ function startCountdownTimer(room: Room, io: Server) {
 io.on('connection', (socket) =>{
   console.log('User connected: ', socket.id)
 
+  // do 60k ms (or 60s) to test functionality first
+  // TODO: change to something between 10-15 minutes in actual use
+  resetInactivity(socket)
+
   socket.on('join-room', (data) => {
     const {roomId, playerName} = data
 
+    resetInactivity(socket)
     // get the roomId, create a new room if it doesnt exist
     let room = rooms.get(roomId)
     console.log(`Room ID is ${room}`)
@@ -190,6 +210,8 @@ io.on('connection', (socket) =>{
 
   // event listener for the start of the voting section
   socket.on('vote-start', (data) => {
+
+    resetInactivity(socket)
     const { roomId } = data
     let room = rooms.get(roomId)
     if (!room) return
@@ -217,6 +239,8 @@ io.on('connection', (socket) =>{
 
   socket.on('reveal-vote', (data) => {
 
+    resetInactivity(socket)
+
     const {roomId} = data
     const room = rooms.get(roomId)
     if (!room) return
@@ -235,6 +259,7 @@ io.on('connection', (socket) =>{
 
   // switch from STORY INPUT to THINKING state
   socket.on('submit-story', (data) => {
+    resetInactivity(socket)
     const { roomId, name, description } = data
     let room = rooms.get(roomId)
     if (!room) return
@@ -277,6 +302,7 @@ io.on('connection', (socket) =>{
   // })
 
   socket.on('select-card', (data) => {
+    resetInactivity(socket)
     const { roomId, vote } = data
     let room = rooms.get(roomId)
     if (!room) return
@@ -296,6 +322,7 @@ io.on('connection', (socket) =>{
   
 
   socket.on('player-ready', (data) => {
+    resetInactivity(socket)
     const { roomId } = data
     const room = rooms.get(roomId)
     if (!room) return
@@ -321,8 +348,10 @@ io.on('connection', (socket) =>{
   // TODO: fix double rotation issue when game is in the DISCUSSION stage
   socket.on('disconnect', () => {
     console.log('User disconnected: ', socket.id)
-
+    clearTimeout(timeouts.get(socket.id))
+    timeouts.delete(socket.id)
     // find the room where the player was in
+    
     rooms.forEach((room, roomId) => {
 
       // remove player from the room, need to think about the implications 
